@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from bookmarks import views as frontend_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -26,4 +27,10 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     
     path('api/', include('bookmarks.urls')),
+    
+    # Frontend pages
+    path('', frontend_views.index_view, name='index'),
+    path('login/', frontend_views.login_view, name='login'),
+    path('registro/', frontend_views.registro_view, name='registro'),
+    path('dashboard/', frontend_views.dashboard_view, name='dashboard'),
 ]

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - Bookmarks</title>
+    <style>
+        /* ===== ESTILOS ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+        }
+
+        .navbar {
+            background-color: #2c3e50;
+            color: white;
+            padding: 1rem 0;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .logo {
+            color: white;
+            text-decoration: none;
+            font-size: 1.5rem;
+        }
+
+        .form-container {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 0 20px;
+        }
+
+        .form-card {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .form-card h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 16px;
+            border-radius: 4px;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 0.9rem;
+            min-height: 20px;
+        }
+
+        .success-message {
+            color: #27ae60;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .form-footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+        }
+
+        .form-footer a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{% url 'index' %}" class="logo">📚 Bookmarks</a>
+        </div>
+    </nav>
+
+    <main class="form-container">
+        <div class="form-card">
+            <h2>Crear Cuenta</h2>
+            
+            <!-- Aquí se mostrarán los mensajes de error/éxito -->
+            <div id="mensaje" class="error-message"></div>
+            
+            <form id="registroForm">
+                <div class="form-group">
+                    <label for="username">Usuario:</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Contraseña:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password2">Confirmar Contraseña:</label>
+                    <input type="password" id="password2" name="password2" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Registrarse</button>
+            </form>
+            
+            <p class="form-footer">
+                ¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesión aquí</a>
+            </p>
+        </div>
+    </main>
+
+    <script>
+        // ===== CONFIGURACIÓN =====
+        const API_URL = 'http://localhost:8000/api';
+        
+        // ===== OBTENER ELEMENTOS DEL DOM =====
+        const registroForm = document.getElementById('registroForm');
+        const mensajeDiv = document.getElementById('mensaje');
+
+        // ===== FUNCIÓN PARA MOSTRAR ERRORES =====
+        function mostrarError(texto) {
+            mensajeDiv.className = 'error-message';
+            mensajeDiv.textContent = texto;
+        }
+
+        // ===== FUNCIÓN PARA MOSTRAR ÉXITO =====
+        function mostrarExito(texto) {
+            mensajeDiv.className = 'success-message';
+            mensajeDiv.textContent = texto;
+        }
+
+        // ===== FUNCIÓN PARA FORMATEAR ERRORES DEL BACKEND =====
+        function formatearErrores(data) {
+            if (typeof data === 'string') {
+                return data;
+            }
+            
+            if (typeof data === 'object') {
+                // Si es un objeto con errores por campo
+                const errores = [];
+                for (let campo in data) {
+                    if (Array.isArray(data[campo])) {
+                        errores.push(`${campo}: ${data[campo].join(', ')}`);
+                    } else {
+                        errores.push(`${campo}: ${data[campo]}`);
+                    }
+                }
+                return errores.join(' | ');
+            }
+            
+            return 'Error en el registro';
+        }
+
+        // ===== EVENTO PRINCIPAL: ENVÍO DEL FORMULARIO =====
+        registroForm.addEventListener('submit', async (e) => {
+            // 1. Prevenir que el formulario se envíe de forma tradicional
+            e.preventDefault();
+            
+            // 2. Limpiar mensajes anteriores
+            mensajeDiv.textContent = '';
+            mensajeDiv.className = 'error-message';
+            
+            // 3. Obtener valores del formulario
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const password2 = document.getElementById('password2').value;
+            
+            // 4. Validación RÁPIDA en el frontend (antes de enviar al servidor)
+            if (!username || !email || !password || !password2) {
+                mostrarError('Todos los campos son obligatorios');
+                return;
+            }
+            
+            if (password !== password2) {
+                mostrarError('Las contraseñas no coinciden');
+                return;
+            }
+            
+            if (password.length < 8) {
+                mostrarError('La contraseña debe tener al menos 8 caracteres');
+                return;
+            }
+            
+            // 5. Preparar datos para enviar
+            const formData = {
+                username: username,
+                email: email,
+                password: password,
+                password2: password2,
+                first_name: '',
+                last_name: ''
+            };
+            
+            try {
+                // 6. Enviar petición al backend
+                const response = await fetch(`${API_URL}/registro/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                // 7. Obtener respuesta (siempre es JSON)
+                const data = await response.json();
+                
+                // 8. Verificar si la petición fue exitosa
+                if (response.ok) {
+                    // Registro exitoso
+                    mostrarExito('¡Registro exitoso! Redirigiendo al login...');
+                    
+                    // Limpiar formulario
+                    registroForm.reset();
+                    
+                    // Redirigir después de 2 segundos
+                    setTimeout(() => {
+                        window.location.href = "{% url 'login' %}";
+                    }, 2000);
+                } else {
+                    // Error del backend
+                    const errorMsg = formatearErrores(data);
+                    mostrarError(errorMsg);
+                }
+                
+            } catch (error) {
+                // 9. Error de red (servidor caído, sin conexión, etc.)
+                console.error('Error completo:', error);
+                mostrarError('Error de conexión con el servidor');
+            }
+        });
+    </script>
+</body>
+</html>

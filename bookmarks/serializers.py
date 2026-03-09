@@ -62,7 +62,7 @@ class ColeccionSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("El nombre debe contener más de 2 caracteres")
         if len(value) > 100:
             raise serializers.ValidationError("El nombre no debe exceder 100 caracteres")
-        if not re.match(r'^[A-Za-z0-9\s]+$', value):
+        if not re.match(r'^[A-Za-zÁÉÍÓÚáéíóúÜüÑñ0-9\s]+$', value):
             raise serializers.ValidationError("El nombre solo debe contener letras, números y espacios")
         return value
     
@@ -118,7 +118,7 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("El nombre debe contener más de 3 caracteres")
         if len(value) > 20:
             raise serializers.ValidationError("El nombre no debe exceder 20 caracteres")
-        if not re.match(r'^[A-Za-z0-9_]+$', value):
+        if not re.match(r'^[A-Za-zÁÉÍÓÚáéíóúÜüÑñ0-9_]+$', value):
             raise serializers.ValidationError("El nombre solo debe contener letras, números y guiones bajos")
         return value
     
@@ -139,7 +139,7 @@ class UserSerializer(serializers.ModelSerializer):
         if value:
             if len(value) < 2:
                 raise serializers.ValidationError("El firstname debe contener más de 1 caracter")
-            if not re.match(r'^[A-Za-z\s]+$', value):
+            if not re.match(r'^[A-Za-zÁÉÍÓÚáéíóúÜüÑñ\s]+$', value):
                 raise serializers.ValidationError("El firstname solo debe contener letras y espacios")
         return value
     
@@ -148,6 +148,6 @@ class UserSerializer(serializers.ModelSerializer):
         if value:
             if len(value) < 2:
                 raise serializers.ValidationError("El lastname debe contener más de 1 caracter")
-            if not re.match(r'^[A-Za-z\s]+$', value):
+            if not re.match(r'^[A-Za-zÁÉÍÓÚáéíóúÜüÑñ\s]+$', value):
                 raise serializers.ValidationError("El lastname solo debe contener letras y espacios")
         return value

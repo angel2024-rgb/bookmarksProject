@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.shortcuts import get_object_or_404
 from .models import Coleccion, Bookmark
 from .serializers import ColeccionSerializer, BookmarkSerializer, UserSerializer
+from django.shortcuts import render
 
 class ColeccionListCreateView(APIView):
     permission_classes = [IsAuthenticated]
@@ -115,3 +116,15 @@ class RegistroView(APIView):
                 "usuario": user.username
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+def index_view(request):
+    return render(request, 'frontend/index.html')
+
+def login_view(request):
+    return render(request, 'frontend/login.html')
+
+def registro_view(request):
+    return render(request, 'frontend/registro.html')
+
+def dashboard_view(request):
+    return render(request, 'frontend/dashboard.html')

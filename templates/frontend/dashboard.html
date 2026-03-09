@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Bookmarks</title>
+    <style>
+        /* ESTILOS dashboard */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+        }
+
+        .navbar {
+            background-color: #2c3e50;
+            color: white;
+            padding: 1rem 0;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            color: white;
+            text-decoration: none;
+            font-size: 1.5rem;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: white;
+            border: 1px solid white;
+        }
+
+        .btn-outline:hover {
+            background: white;
+            color: #2c3e50;
+        }
+
+        .dashboard {
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 20px;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-height: 500px;
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-height: 500px;
+        }
+
+        .coleccion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .success-message {
+            color: #27ae60;
+            text-align: center;
+            padding: 20px;
+        }
+        /* Estilos para los items de colección */
+        .coleccion-item {
+            padding: 10px;
+            margin-bottom: 5px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .coleccion-item:hover {
+            background-color: #e9ecef;
+        }
+
+        .coleccion-item:active {
+            background-color: #dee2e6;
+        }
+        /* Estilo para la colección activa */
+        .coleccion-item.active {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .coleccion-item.active:hover {
+            background-color: #2980b9;
+        }
+
+        /* Estilos para los bookmarks */
+        .bookmarks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .bookmark-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            transition: transform 0.2s;
+        }
+
+        .bookmark-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .bookmark-card h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+
+        .bookmark-card p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .bookmark-url {
+            color: #3498db;
+            text-decoration: none;
+            word-break: break-all;
+            font-size: 0.85rem;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .bookmark-url:hover {
+            text-decoration: underline;
+        }
+
+        .bookmark-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 10px;
+        }
+
+        .bookmark-actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .bookmark-actions button:hover {
+            background-color: #e9ecef;
+        }
+        /* Estilos para el modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 500px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .close {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .modal h3 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+        }
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 0.85rem;
+            width: auto;
+            display: inline-block;
+        }
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-block {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        /* Estilos para los items de colección con botones */
+        .coleccion-item {
+            padding: 10px;
+            margin-bottom: 5px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .coleccion-item:hover {
+            background-color: #e9ecef;
+        }
+
+        .coleccion-item.active {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .coleccion-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .coleccion-actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .coleccion-actions button:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        .coleccion-item.active .coleccion-actions button {
+            color: white;
+        }
+
+        .coleccion-item.active .coleccion-actions button:hover {
+            background-color: rgba(255,255,255,0.2);
+        }
+        /* Estilos adicionales para el modal de bookmark */
+        #bookmarkModal .modal-content {
+            max-width: 500px;
+        }
+
+        #bookmarkModal .form-group {
+            margin-bottom: 15px;
+        }
+
+        #bookmarkModal input[type="url"] {
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{% url 'index' %}" class="logo">📚 Bookmarks</a>
+            <button id="logoutBtn" class="btn btn-outline">Cerrar Sesión</button>
+        </div>
+    </nav>
+
+    <main class="dashboard">
+        <aside class="sidebar">
+            <button id="nuevaColeccionBtn" class="btn btn-primary btn-block">Nueva Colección</button>
+            <h3>Mis Colecciones</h3>
+            <div id="listaColecciones">
+                <!-- Las colecciones se cargarán aquí -->
+                <p class="error-message">Cargando colecciones...</p>
+            </div>
+        </aside>
+
+        <section class="main-content">
+            <div class="coleccion-header">
+                <h2 id="coleccionTitulo">Selecciona una colección</h2>
+                <button id="nuevoBookmarkBtn" class="btn btn-primary btn-small" style="display: none;">Nuevo Bookmark</button>
+            </div>
+            
+            <div id="listaBookmarks">
+                <p class="error-message">Selecciona una colección para ver sus bookmarks</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal para crear colección -->
+    <div id="coleccionModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3 id="modalTitulo">Nueva Colección</h3>
+            <form id="coleccionForm">
+                <input type="hidden" id="coleccionId" value="">
+                <div class="form-group">
+                    <label for="coleccionNombre">Nombre:</label>
+                    <input type="text" id="coleccionNombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="coleccionDescripcion">Descripción:</label>
+                    <textarea id="coleccionDescripcion" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn-primary">Guardar Colección</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para crear/editar bookmark -->
+    <div id="bookmarkModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3 id="modalBookmarkTitulo">Nuevo Bookmark</h3>
+            <form id="bookmarkForm">
+                <input type="hidden" id="bookmarkId">
+                <input type="hidden" id="bookmarkColeccionId">
+                <div class="form-group">
+                    <label for="bookmarkTitulo">Título:</label>
+                    <input type="text" id="bookmarkTitulo" required>
+                </div>
+                <div class="form-group">
+                    <label for="bookmarkUrl">URL:</label>
+                    <input type="url" id="bookmarkUrl" required>
+                </div>
+                <div class="form-group">
+                    <label for="bookmarkDescripcion">Descripción:</label>
+                    <textarea id="bookmarkDescripcion" rows="2"></textarea>
+                </div>
+                <button type="submit" class="btn-primary">Guardar Bookmark</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ===== CONFIGURACIÓN =====
+        const API_URL = 'http://localhost:8000/api';
+        const token = localStorage.getItem('access_token');
+        const mensajeDiv = document.getElementById('mensaje');
+        
+        // ===== VERIFICAR TOKEN =====
+        if (!token) {
+            // No hay token, redirigir a login
+            window.location.href = "{% url 'login' %}";
+        }
+
+        // ===== FUNCIÓN PARA PETICIONES AUTENTICADAS =====
+        async function apiRequest(endpoint, options = {}) {
+            const response = await fetch(`${API_URL}${endpoint}`, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    ...options.headers
+                }
+            });
+            
+            if (response.status === 401) {
+                // Token expirado o inválido
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                window.location.href = "{% url 'login' %}";
+                return null;
+            }
+            
+            return response;
+        }
+
+        // ===== FUNCIÓN PARA SELECCIONAR UNA COLECCIÓN =====
+        function seleccionarColeccion(elemento) {
+            // 1. Remover clase 'active' de todas las colecciones
+            document.querySelectorAll('.coleccion-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // 2. Agregar clase 'active' a la colección clickeada
+            elemento.classList.add('active');
+            
+            // 3. Obtener el ID y nombre de la colección seleccionada
+            const coleccionId = elemento.dataset.id;
+            //const coleccionNombre = elemento.textContent;
+            const coleccionNombre = elemento.textContent.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, "").trim();
+            // 4. Guardar el ID para usarlo después
+            window.coleccionActivaId = coleccionId;
+            
+            // 5. Actualizar el título en el header
+            document.getElementById('coleccionTitulo').textContent = coleccionNombre;
+            
+            // 6. MOSTRAR EL BOTÓN DE NUEVO BOOKMARK
+            document.getElementById('nuevoBookmarkBtn').style.display = 'block';
+            
+            // 7. Mostrar en consola (para verificar)
+            console.log(`✅ Colección seleccionada: ${coleccionNombre} (ID: ${coleccionId})`);
+            
+            // 8. CARGAR LOS BOOKMARKS DE ESTA COLECCIÓN
+            cargarBookmarks(coleccionId);
+        }
+
+        // ===== FUNCIÓN PARA CARGAR BOOKMARKS DE UNA COLECCIÓN =====
+        async function cargarBookmarks(coleccionId) {
+            const bookmarksDiv = document.getElementById('listaBookmarks');
+            
+            // Mostrar mensaje de carga
+            bookmarksDiv.innerHTML = '<p class="error-message">Cargando bookmarks...</p>';
+            
+            try {
+                // Petición a la API con filtro por colección
+                const response = await apiRequest(`/bookmarks/?coleccion=${coleccionId}`);
+                if (!response) return;
+                
+                const bookmarks = await response.json();
+                
+                // Si no hay bookmarks
+                if (bookmarks.length === 0) {
+                    bookmarksDiv.innerHTML = '<p class="error-message">No hay bookmarks en esta colección</p>';
+                    return;
+                }
+                
+                // Construir HTML para cada bookmark
+                let html = '';
+                bookmarks.forEach(bookmark => {
+                    html += `
+                        <div class="bookmark-card" data-id="${bookmark.id}">
+                            <h3>${bookmark.titulo}</h3>
+                            <p>${bookmark.descripcion || 'Sin descripción'}</p>
+                            <a href="${bookmark.url}" target="_blank" class="bookmark-url">${bookmark.url}</a>
+                            <div class="bookmark-actions">
+                                <button onclick="editarBookmark(${bookmark.id})">✏️</button>
+                                <button onclick="eliminarBookmark(${bookmark.id})">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                bookmarksDiv.innerHTML = html;
+                console.log(`✅ ${bookmarks.length} bookmarks cargados`);
+                
+            } catch (error) {
+                console.error('❌ Error cargando bookmarks:', error);
+                bookmarksDiv.innerHTML = '<p class="error-message">Error al cargar bookmarks</p>';
+            }
+        }
+
+        // ===== FUNCIÓN PARA CARGAR COLECCIONES =====
+        async function cargarColecciones() {
+            const listaDiv = document.getElementById('listaColecciones');
+            
+            listaDiv.innerHTML = '<p class="error-message">Cargando colecciones...</p>';
+            
+            try {
+                const response = await apiRequest('/colecciones/');
+                if (!response) return;
+                
+                const colecciones = await response.json();
+                
+                if (colecciones.length === 0) {
+                    listaDiv.innerHTML = '<p class="error-message">No tienes colecciones. ¡Crea una!</p>';
+                    return;
+                }
+                
+                // Construir HTML con botones
+                let html = '';
+                colecciones.forEach(coleccion => {
+                    html += `
+                        <div class="coleccion-item" data-id="${coleccion.id}">
+                            <span class="coleccion-nombre">${coleccion.nombre}</span>
+                            <div class="coleccion-actions">
+                                <button class="edit-btn" onclick="editarColeccion(${coleccion.id}, '${coleccion.nombre}', '${coleccion.descripcion || ''}')">✏️</button>
+                                <button class="delete-btn" onclick="eliminarColeccion(${coleccion.id})">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                listaDiv.innerHTML = html;
+                
+                // Agregar event listeners para seleccionar (solo al hacer clic en el nombre)
+                document.querySelectorAll('.coleccion-item').forEach(item => {
+                    const nombreSpan = item.querySelector('.coleccion-nombre');
+                    nombreSpan.addEventListener('click', function() {
+                        seleccionarColeccion(item);
+                    });
+                });
+                
+                console.log('✅ Colecciones cargadas:', colecciones);
+                
+            } catch (error) {
+                console.error('❌ Error cargando colecciones:', error);
+                listaDiv.innerHTML = '<p class="error-message">Error al cargar colecciones</p>';
+            }
+        }
+
+        // ===== LOGOUT =====
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            window.location.href = "{% url 'index' %}";
+        });
+
+        console.log('✅ Dashboard cargado, token:', token ? 'presente' : 'ausente');
+
+        // ===== INICIAR CARGA DE COLECCIONES =====
+        cargarColecciones();
+
+
+        // ===== VARIABLES PARA MODAL =====
+        const modal = document.getElementById('coleccionModal');
+        const btnNuevaColeccion = document.getElementById('nuevaColeccionBtn');
+        const spanClose = document.querySelector('.close');
+
+        // ===== ABRIR MODAL PARA NUEVA COLECCIÓN =====
+        btnNuevaColeccion.onclick = function() {
+            // LIMPIAR FORMULARIO
+            document.getElementById('coleccionForm').reset();
+            document.getElementById('coleccionId').value = '';
+            document.getElementById('modalTitulo').textContent = 'Nueva Colección';
+            
+            modal.style.display = 'block';
+            document.getElementById('coleccionNombre').focus();
+        }
+
+        // ===== CERRAR MODAL =====
+        spanClose.onclick = function() {
+            modal.style.display = 'none';
+        }
+
+        // ===== CERRAR MODALES SI SE HACE CLIC FUERA =====
+        window.onclick = function(event) {
+            if (event.target == bookmarkModal) {
+                bookmarkModal.style.display = 'none';
+            }
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // ===== ENVÍO DEL FORMULARIO (CREAR/EDITAR) =====
+        document.getElementById('coleccionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('coleccionId').value;
+            const nombre = document.getElementById('coleccionNombre').value.trim();
+            const descripcion = document.getElementById('coleccionDescripcion').value.trim();
+            
+            if (!nombre) {
+                alert('El nombre es obligatorio');
+                return;
+            }
+            
+            try {
+                let response;
+                
+                if (id) {
+                    // EDITAR (PUT)
+                    response = await apiRequest(`/colecciones/${id}/`, {
+                        method: 'PUT',
+                        body: JSON.stringify({
+                            nombre: nombre,
+                            descripcion: descripcion
+                        })
+                    });
+                } else {
+                    // CREAR (POST)
+                    response = await apiRequest('/colecciones/', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            nombre: nombre,
+                            descripcion: descripcion
+                        })
+                    });
+                }
+                
+                if (response && response.ok) {
+                    // Cerrar modal
+                    modal.style.display = 'none';
+                    
+                    // Limpiar formulario
+                    document.getElementById('coleccionForm').reset();
+                    document.getElementById('coleccionId').value = '';
+                    document.getElementById('modalTitulo').textContent = 'Nueva Colección';
+                    
+                    // Recargar colecciones
+                    await cargarColecciones();
+                    
+                    console.log(id ? '✅ Colección actualizada' : '✅ Colección creada');
+                } else {
+                    const error = await response.json();
+                    alert('Error: ' + JSON.stringify(error));
+                }
+                
+            } catch (error) {
+                console.error('❌ Error:', error);
+                alert('Error al guardar la colección');
+            }
+        });
+
+        // ===== EDITAR COLECCIÓN =====
+        async function editarColeccion(id, nombreActual, descripcionActual) {
+            // Abrir modal con los datos actuales
+            modal.style.display = 'block';
+            document.getElementById('modalTitulo').textContent = 'Editar Colección';
+            document.getElementById('coleccionId').value = id;
+            document.getElementById('coleccionNombre').value = nombreActual;
+            document.getElementById('coleccionDescripcion').value = descripcionActual;
+        }
+
+        // ===== ELIMINAR COLECCIÓN =====
+        async function eliminarColeccion(id) {
+            if (!confirm('¿Estás seguro de eliminar esta colección? También se eliminarán todos sus bookmarks.')) {
+                return;
+            }
+            
+            try {
+                const response = await apiRequest(`/colecciones/${id}/`, {
+                    method: 'DELETE'
+                });
+                
+                if (response && response.ok) {
+                    // Si la colección activa fue eliminada, limpiar el área de bookmarks
+                    if (window.coleccionActivaId == id) {
+                        document.getElementById('coleccionTitulo').textContent = 'Selecciona una colección';
+                        document.getElementById('listaBookmarks').innerHTML = 
+                            '<p class="error-message">Selecciona una colección para ver sus bookmarks</p>';
+                        window.coleccionActivaId = null;
+                    }
+                    
+                    // Recargar colecciones
+                    await cargarColecciones();
+                    console.log('✅ Colección eliminada');
+                } else {
+                    alert('Error al eliminar la colección');
+                }
+                
+            } catch (error) {
+                console.error('❌ Error eliminando colección:', error);
+                alert('Error al eliminar la colección');
+            }
+        }
+
+        // ===== VARIABLES PARA MODAL DE BOOKMARK =====
+        const bookmarkModal = document.getElementById('bookmarkModal');
+        const btnNuevoBookmark = document.getElementById('nuevoBookmarkBtn');
+        const bookmarkClose = bookmarkModal.querySelector('.close');
+
+        // ===== ABRIR MODAL PARA NUEVO BOOKMARK =====
+        btnNuevoBookmark.onclick = function() {
+            if (!window.coleccionActivaId) {
+                alert('Selecciona una colección primero');
+                return;
+            }
+            
+            // Limpiar formulario
+            document.getElementById('bookmarkForm').reset();
+            document.getElementById('bookmarkId').value = '';
+            document.getElementById('bookmarkColeccionId').value = window.coleccionActivaId;
+            document.getElementById('modalBookmarkTitulo').textContent = 'Nuevo Bookmark';
+            
+            bookmarkModal.style.display = 'block';
+            document.getElementById('bookmarkTitulo').focus();
+        }
+
+        // ===== CERRAR MODAL DE BOOKMARK =====
+        bookmarkClose.onclick = function() {
+            bookmarkModal.style.display = 'none';
+        }
+
+
+        // ===== EDITAR BOOKMARK =====
+        async function editarBookmark(id) {
+            try {
+                const response = await apiRequest(`/bookmarks/${id}/`);
+                if (!response) return;
+                
+                const bookmark = await response.json();
+                
+                // Llenar el modal
+                document.getElementById('bookmarkId').value = bookmark.id;
+                document.getElementById('bookmarkColeccionId').value = bookmark.coleccion;
+                document.getElementById('bookmarkTitulo').value = bookmark.titulo;
+                document.getElementById('bookmarkUrl').value = bookmark.url;
+                document.getElementById('bookmarkDescripcion').value = bookmark.descripcion || '';
+                document.getElementById('modalBookmarkTitulo').textContent = 'Editar Bookmark';
+                
+                bookmarkModal.style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error obteniendo bookmark:', error);
+                alert('Error al cargar los datos del bookmark');
+            }
+        }
+
+        // ===== ELIMINAR BOOKMARK =====
+        async function eliminarBookmark(id) {
+            if (!confirm('¿Estás seguro de eliminar este bookmark?')) {
+                return;
+            }
+            
+            try {
+                const response = await apiRequest(`/bookmarks/${id}/`, {
+                    method: 'DELETE'
+                });
+                
+                if (response && response.ok) {
+                    if (window.coleccionActivaId) {
+                        await cargarBookmarks(window.coleccionActivaId);
+                    }
+                    console.log('✅ Bookmark eliminado');
+                } else {
+                    alert('Error al eliminar el bookmark');
+                }
+                
+            } catch (error) {
+                console.error('Error eliminando bookmark:', error);
+                alert('Error al eliminar el bookmark');
+            }
+        }
+
+        // ===== ENVÍO DEL FORMULARIO DE BOOKMARK =====
+        document.getElementById('bookmarkForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('bookmarkId').value;
+            const coleccionId = document.getElementById('bookmarkColeccionId').value;
+            const titulo = document.getElementById('bookmarkTitulo').value.trim();
+            const url = document.getElementById('bookmarkUrl').value.trim();
+            const descripcion = document.getElementById('bookmarkDescripcion').value.trim();
+            
+            if (!titulo || !url) {
+                alert('Título y URL son obligatorios');
+                return;
+            }
+            
+            try {
+                let response;
+                const data = {
+                    titulo: titulo,
+                    url: url,
+                    descripcion: descripcion,
+                    coleccion: parseInt(coleccionId)
+                };
+                
+                if (id) {
+                    // EDITAR
+                    response = await apiRequest(`/bookmarks/${id}/`, {
+                        method: 'PUT',
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    // CREAR
+                    response = await apiRequest('/bookmarks/', {
+                        method: 'POST',
+                        body: JSON.stringify(data)
+                    });
+                }
+                
+                if (response && response.ok) {
+                    // Cerrar modal
+                    bookmarkModal.style.display = 'none';
+                    
+                    // Limpiar formulario
+                    document.getElementById('bookmarkForm').reset();
+                    document.getElementById('bookmarkId').value = '';
+                    
+                    // Recargar bookmarks
+                    if (window.coleccionActivaId) {
+                        await cargarBookmarks(window.coleccionActivaId);
+                    }
+                    
+                    console.log(id ? '✅ Bookmark actualizado' : '✅ Bookmark creado');
+                } else {
+                    const error = await response.json();
+                    alert('Error: ' + JSON.stringify(error));
+                }
+                
+            } catch (error) {
+                console.error('Error guardando bookmark:', error);
+                alert('Error al guardar el bookmark');
+            }
+        });
+
+    </script>
+</body>
+</html>
