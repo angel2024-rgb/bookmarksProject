@@ -422,32 +422,110 @@
     <script>
         // ===== CONFIGURACIÓN =====
         const API_URL = 'http://localhost:8000/api';
-        const token = localStorage.getItem('access_token');
         const mensajeDiv = document.getElementById('mensaje');
         
-        // ===== VERIFICAR TOKEN =====
-        if (!token) {
-            // No hay token, redirigir a login
+        // ===== VERIFICAR TOKEN CON SOPORTE PARA REFRESH =====
+        const accessToken = localStorage.getItem('access_token');
+        const refreshToken = localStorage.getItem('refresh_token');
+
+        if (!accessToken && !refreshToken) {
+            // No hay ningún token, redirigir a login
             window.location.href = "{% url 'login' %}";
         }
 
-        // ===== FUNCIÓN PARA PETICIONES AUTENTICADAS =====
-        async function apiRequest(endpoint, options = {}) {
+        // Si hay refresh token pero no access token, intentar renovar automáticamente
+        if (!accessToken && refreshToken) {
+            console.log('🔄 No hay access token pero sí refresh, renovando...');
+            // Función auto-ejecutable asíncrona
+            (async () => {
+                try {
+                    const refreshResponse = await fetch(`${API_URL}/token/refresh/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ refresh: refreshToken })
+                    });
+                    
+                    if (refreshResponse.ok) {
+                        const data = await refreshResponse.json();
+                        localStorage.setItem('access_token', data.access);
+                        console.log('✅ Sesión recuperada');
+                        // Recargar la página para que todo funcione con el nuevo token
+                        window.location.reload();
+                    } else {
+                        // Refresh token inválido
+                        localStorage.removeItem('access_token');
+                        localStorage.removeItem('refresh_token');
+                        window.location.href = "{% url 'login' %}";
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    window.location.href = "{% url 'login' %}";
+                }
+            })();
+        }
+
+        // ===== FUNCIÓN PARA PETICIONES AUTENTICADAS CON RENOVACIÓN =====
+        async function apiRequest(endpoint, options = {}, intentos = 0) {
+            let currentToken = localStorage.getItem('access_token');
+            
             const response = await fetch(`${API_URL}${endpoint}`, {
                 ...options,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
+                    'Authorization': `Bearer ${currentToken}`,
                     ...options.headers
                 }
             });
             
-            if (response.status === 401) {
-                // Token expirado o inválido
-                localStorage.removeItem('access_token');
-                localStorage.removeItem('refresh_token');
-                window.location.href = "{% url 'login' %}";
-                return null;
+            if (response.status === 401 && intentos === 0) {
+                // Token expirado - intentar renovar UNA SOLA VEZ
+                console.log('🔄 Token expirado, intentando renovar...');
+                
+                const refreshToken = localStorage.getItem('refresh_token');
+                
+                if (!refreshToken) {
+                    // No hay refresh token, redirigir a login
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('refresh_token');
+                    window.location.href = "{% url 'login' %}";
+                    return null;
+                }
+                
+                try {
+                    // Intentar obtener nuevo access token
+                    const refreshResponse = await fetch(`${API_URL}/token/refresh/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ refresh: refreshToken })
+                    });
+                    
+                    if (refreshResponse.ok) {
+                        const data = await refreshResponse.json();
+                        // Guardar nuevo access token
+                        localStorage.setItem('access_token', data.access);
+                        console.log('✅ Token renovado exitosamente');
+                        
+                        // Reintentar la petición original con el nuevo token
+                        return apiRequest(endpoint, options, 1);
+                    } else {
+                        // Refresh token inválido o expirado
+                        console.log('❌ Refresh token inválido');
+                        localStorage.removeItem('access_token');
+                        localStorage.removeItem('refresh_token');
+                        window.location.href = "{% url 'login' %}";
+                        return null;
+                    }
+                } catch (error) {
+                    console.error('Error renovando token:', error);
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('refresh_token');
+                    window.location.href = "{% url 'login' %}";
+                    return null;
+                }
             }
             
             return response;
@@ -465,8 +543,8 @@
             
             // 3. Obtener el ID y nombre de la colección seleccionada
             const coleccionId = elemento.dataset.id;
-            //const coleccionNombre = elemento.textContent;
             const coleccionNombre = elemento.textContent.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, "").trim();
+            
             // 4. Guardar el ID para usarlo después
             window.coleccionActivaId = coleccionId;
             
@@ -584,11 +662,13 @@
             window.location.href = "{% url 'index' %}";
         });
 
-        console.log('✅ Dashboard cargado, token:', token ? 'presente' : 'ausente');
+        console.log('✅ Dashboard cargado');
 
         // ===== INICIAR CARGA DE COLECCIONES =====
-        cargarColecciones();
-
+        // Solo cargar si hay access token (o si estamos en proceso de renovación, se recargará después)
+        if (localStorage.getItem('access_token')) {
+            cargarColecciones();
+        }
 
         // ===== VARIABLES PARA MODAL =====
         const modal = document.getElementById('coleccionModal');
@@ -751,7 +831,6 @@
             bookmarkModal.style.display = 'none';
         }
 
-
         // ===== EDITAR BOOKMARK =====
         async function editarBookmark(id) {
             try {
@@ -864,7 +943,6 @@
                 alert('Error al guardar el bookmark');
             }
         });
-
     </script>
 </body>
 </html>
