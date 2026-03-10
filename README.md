@@ -16,7 +16,7 @@ API REST para gestión de marcadores personales con autenticación JWT y fronten
 -  Interfaz responsive
 -  Dashboard con colecciones y bookmarks
 -  Modales para crear/editar
--  Manejo automático de tokens 
+-  Manejo automático de tokens
 -  Diseño limpio y funcional
 
 ##  Capturas de pantalla
@@ -79,43 +79,50 @@ API REST para gestión de marcadores personales con autenticación JWT y fronten
 1. **Clonar el repositorio**
    ```bash
    git clone https://github.com/angel2024-rgb/bookmarksProject.git
-   cd bookmarks-api
-   
+   cd bookmarksProject
+   ```
+
 2. **Crear y activar entorno virtual**
-    # Windows
-    python -m venv venv
-    venv\Scripts\activate
-    # Mac/Linux
-    python3 -m venv venv
-    source venv/bin/activate
+   ```bash
+   # Windows
+   python -m venv venv
+   venv\Scripts\activate
+
+   # Mac/Linux
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
 
 3. **Instalar dependencias**
-    pip install -r requirements.txt
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 4. **Realizar migraciones**
-    python manage.py migrate
+   ```bash
+   python manage.py migrate
+   ```
 
 5. **Ejecutar servidor**
-    python manage.py runserver
+   ```bash
+   python manage.py runserver
+   ```
 
 6. **Acceder a la aplicación**
-    Frontend: http://localhost:8000/
-    Admin: http://localhost:8000/admin/
+   - Frontend: http://localhost:8000/
+   - Admin: http://localhost:8000/admin/
 
-### Cómo usar la aplicación
+###  Cómo usar la aplicación
 
-- Regístrate como nuevo usuario en /registro/
+1.  **Regístrate** como nuevo usuario en `/registro/`
+2.  **Inicia sesión** en `/login/`
+3.  **Crea colecciones** desde el dashboard
+4.  **Añade bookmarks** a tus colecciones
+5.  **Organiza** tus enlaces favoritos
 
-- Inicia sesión en /login/
+###  Autor
 
-- Crea colecciones desde el dashboard
+**Ángel Paredes**  
+- GitHub: [@angel2024-rgb](https://github.com/angel2024-rgb)
 
-- Añade bookmarks a tus colecciones
-
-- Organiza tus enlaces favoritos
-
-### Autor
-
-- GitHub: https://github.com/angel2024-rgb
-
-- LinkedIn: www.linkedin.com/in/angelmanuelparedessanchez
+---

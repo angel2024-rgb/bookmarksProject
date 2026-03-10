@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión - Bookmarks</title>
     <style>
-        /* ===== ESTILOS (mismos que registro) ===== */
+        /* ===== ESTILOS ===== */
         * {
             margin: 0;
             padding: 0;
@@ -143,7 +143,6 @@
         <div class="form-card">
             <h2>Iniciar Sesión</h2>
             
-            <!-- Aquí se mostrarán los mensajes de error/éxito -->
             <div id="mensaje" class="error-message"></div>
             
             <form id="loginForm">
@@ -170,17 +169,14 @@
         // ===== CONFIGURACIÓN =====
         const API_URL = 'http://localhost:8000/api';
         
-        // ===== OBTENER ELEMENTOS DEL DOM =====
         const loginForm = document.getElementById('loginForm');
         const mensajeDiv = document.getElementById('mensaje');
 
-        // ===== FUNCIÓN PARA MOSTRAR ERRORES =====
         function mostrarError(texto) {
             mensajeDiv.className = 'error-message';
             mensajeDiv.textContent = texto;
         }
 
-        // ===== FUNCIÓN PARA MOSTRAR ÉXITO =====
         function mostrarExito(texto) {
             mensajeDiv.className = 'success-message';
             mensajeDiv.textContent = texto;
@@ -195,33 +191,27 @@
             }
         })();
 
-        // ===== EVENTO PRINCIPAL: ENVÍO DEL FORMULARIO =====
+        // ===== ENVÍO DEL FORMULARIO =====
         loginForm.addEventListener('submit', async (e) => {
-            // 1. Prevenir envío tradicional
             e.preventDefault();
             
-            // 2. Limpiar mensajes anteriores
             mensajeDiv.textContent = '';
             mensajeDiv.className = 'error-message';
             
-            // 3. Obtener valores del formulario
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
             
-            // 4. Validación rápida
             if (!username || !password) {
                 mostrarError('Todos los campos son obligatorios');
                 return;
             }
             
-            // 5. Preparar datos para enviar
             const formData = {
                 username: username,
                 password: password
             };
             
             try {
-                // 6. Enviar petición al backend (endpoint de token)
                 const response = await fetch(`${API_URL}/token/`, {
                     method: 'POST',
                     headers: {
@@ -230,34 +220,25 @@
                     body: JSON.stringify(formData)
                 });
                 
-                // 7. Obtener respuesta
                 const data = await response.json();
                 
-                // 8. Verificar si la petición fue exitosa
                 if (response.ok) {
-                    // Login exitoso - Guardar tokens en localStorage
                     localStorage.setItem('access_token', data.access);
                     localStorage.setItem('refresh_token', data.refresh);
                     
-                    // Mostrar mensaje de éxito
                     mostrarExito('¡Login exitoso! Redirigiendo al dashboard...');
                     
-                    // Limpiar formulario
                     loginForm.reset();
                     
-                    // Redirigir después de 1.5 segundos
                     setTimeout(() => {
                         window.location.href = "{% url 'dashboard' %}";
                     }, 1500);
                 } else {
-                    // Error de login
                     let errorMsg = 'Error al iniciar sesión';
                     
                     if (data.detail) {
-                        // Error estándar de DRF (ej: "No active account found")
                         errorMsg = data.detail;
                     } else if (typeof data === 'object') {
-                        // Si hay otros errores
                         const errores = Object.values(data).flat().join(' | ');
                         if (errores) errorMsg = errores;
                     }
@@ -266,7 +247,6 @@
                 }
                 
             } catch (error) {
-                // 9. Error de red
                 console.error('Error completo:', error);
                 mostrarError('Error de conexión con el servidor. ¿Está Django corriendo?');
             }

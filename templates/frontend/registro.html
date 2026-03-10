@@ -143,7 +143,6 @@
         <div class="form-card">
             <h2>Crear Cuenta</h2>
             
-            <!-- Aquí se mostrarán los mensajes de error/éxito -->
             <div id="mensaje" class="error-message"></div>
             
             <form id="registroForm">
@@ -180,30 +179,25 @@
         // ===== CONFIGURACIÓN =====
         const API_URL = 'http://localhost:8000/api';
         
-        // ===== OBTENER ELEMENTOS DEL DOM =====
         const registroForm = document.getElementById('registroForm');
         const mensajeDiv = document.getElementById('mensaje');
 
-        // ===== FUNCIÓN PARA MOSTRAR ERRORES =====
         function mostrarError(texto) {
             mensajeDiv.className = 'error-message';
             mensajeDiv.textContent = texto;
         }
 
-        // ===== FUNCIÓN PARA MOSTRAR ÉXITO =====
         function mostrarExito(texto) {
             mensajeDiv.className = 'success-message';
             mensajeDiv.textContent = texto;
         }
 
-        // ===== FUNCIÓN PARA FORMATEAR ERRORES DEL BACKEND =====
         function formatearErrores(data) {
             if (typeof data === 'string') {
                 return data;
             }
             
             if (typeof data === 'object') {
-                // Si es un objeto con errores por campo
                 const errores = [];
                 for (let campo in data) {
                     if (Array.isArray(data[campo])) {
@@ -220,14 +214,11 @@
 
         // ===== EVENTO PRINCIPAL: ENVÍO DEL FORMULARIO =====
         registroForm.addEventListener('submit', async (e) => {
-            // 1. Prevenir que el formulario se envíe de forma tradicional
             e.preventDefault();
             
-            // 2. Limpiar mensajes anteriores
             mensajeDiv.textContent = '';
             mensajeDiv.className = 'error-message';
             
-            // 3. Obtener valores del formulario
             const username = document.getElementById('username').value.trim();
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
@@ -249,7 +240,6 @@
                 return;
             }
             
-            // 5. Preparar datos para enviar
             const formData = {
                 username: username,
                 email: email,
@@ -260,7 +250,6 @@
             };
             
             try {
-                // 6. Enviar petición al backend
                 const response = await fetch(`${API_URL}/registro/`, {
                     method: 'POST',
                     headers: {
@@ -269,29 +258,22 @@
                     body: JSON.stringify(formData)
                 });
                 
-                // 7. Obtener respuesta (siempre es JSON)
                 const data = await response.json();
                 
-                // 8. Verificar si la petición fue exitosa
                 if (response.ok) {
-                    // Registro exitoso
                     mostrarExito('¡Registro exitoso! Redirigiendo al login...');
                     
-                    // Limpiar formulario
                     registroForm.reset();
                     
-                    // Redirigir después de 2 segundos
                     setTimeout(() => {
                         window.location.href = "{% url 'login' %}";
                     }, 2000);
                 } else {
-                    // Error del backend
                     const errorMsg = formatearErrores(data);
                     mostrarError(errorMsg);
                 }
                 
             } catch (error) {
-                // 9. Error de red (servidor caído, sin conexión, etc.)
                 console.error('Error completo:', error);
                 mostrarError('Error de conexión con el servidor');
             }

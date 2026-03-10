@@ -105,7 +105,7 @@
             text-align: center;
             padding: 20px;
         }
-        /* Estilos para los items de colección */
+        /* Estilos items de colección */
         .coleccion-item {
             padding: 10px;
             margin-bottom: 5px;
@@ -122,7 +122,7 @@
         .coleccion-item:active {
             background-color: #dee2e6;
         }
-        /* Estilo para la colección activa */
+        /* Estilo la colección activa */
         .coleccion-item.active {
             background-color: #3498db;
             color: white;
@@ -132,7 +132,7 @@
             background-color: #2980b9;
         }
 
-        /* Estilos para los bookmarks */
+        /* Estilos bookmarks */
         .bookmarks-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -196,7 +196,7 @@
         .bookmark-actions button:hover {
             background-color: #e9ecef;
         }
-        /* Estilos para el modal */
+        /* Estilos modal */
         .modal {
             display: none;
             position: fixed;
@@ -284,7 +284,7 @@
             width: 100%;
             margin-bottom: 15px;
         }
-        /* Estilos para los items de colección con botones */
+        /* Estilos items de colección con botones */
         .coleccion-item {
             padding: 10px;
             margin-bottom: 5px;
@@ -330,7 +330,7 @@
         .coleccion-item.active .coleccion-actions button:hover {
             background-color: rgba(255,255,255,0.2);
         }
-        /* Estilos adicionales para el modal de bookmark */
+        /* Estilos modal de bookmark */
         #bookmarkModal .modal-content {
             max-width: 500px;
         }
@@ -357,7 +357,6 @@
             <button id="nuevaColeccionBtn" class="btn btn-primary btn-block">Nueva Colección</button>
             <h3>Mis Colecciones</h3>
             <div id="listaColecciones">
-                <!-- Las colecciones se cargarán aquí -->
                 <p class="error-message">Cargando colecciones...</p>
             </div>
         </aside>
@@ -424,19 +423,17 @@
         const API_URL = 'http://localhost:8000/api';
         const mensajeDiv = document.getElementById('mensaje');
         
-        // ===== VERIFICAR TOKEN CON SOPORTE PARA REFRESH =====
+        // ===== VERIFICAR TOKENS=====
         const accessToken = localStorage.getItem('access_token');
         const refreshToken = localStorage.getItem('refresh_token');
 
         if (!accessToken && !refreshToken) {
-            // No hay ningún token, redirigir a login
+
             window.location.href = "{% url 'login' %}";
         }
 
-        // Si hay refresh token pero no access token, intentar renovar automáticamente
         if (!accessToken && refreshToken) {
             console.log('🔄 No hay access token pero sí refresh, renovando...');
-            // Función auto-ejecutable asíncrona
             (async () => {
                 try {
                     const refreshResponse = await fetch(`${API_URL}/token/refresh/`, {
@@ -451,10 +448,8 @@
                         const data = await refreshResponse.json();
                         localStorage.setItem('access_token', data.access);
                         console.log('✅ Sesión recuperada');
-                        // Recargar la página para que todo funcione con el nuevo token
                         window.location.reload();
                     } else {
-                        // Refresh token inválido
                         localStorage.removeItem('access_token');
                         localStorage.removeItem('refresh_token');
                         window.location.href = "{% url 'login' %}";
@@ -466,7 +461,7 @@
             })();
         }
 
-        // ===== FUNCIÓN PARA PETICIONES AUTENTICADAS CON RENOVACIÓN =====
+        // ===== FUNCIÓN PARA PETICIONES =====
         async function apiRequest(endpoint, options = {}, intentos = 0) {
             let currentToken = localStorage.getItem('access_token');
             
@@ -480,13 +475,12 @@
             });
             
             if (response.status === 401 && intentos === 0) {
-                // Token expirado - intentar renovar UNA SOLA VEZ
+                // Token expirado - intentar renovar una sola vez
                 console.log('🔄 Token expirado, intentando renovar...');
                 
                 const refreshToken = localStorage.getItem('refresh_token');
                 
                 if (!refreshToken) {
-                    // No hay refresh token, redirigir a login
                     localStorage.removeItem('access_token');
                     localStorage.removeItem('refresh_token');
                     window.location.href = "{% url 'login' %}";
@@ -494,7 +488,6 @@
                 }
                 
                 try {
-                    // Intentar obtener nuevo access token
                     const refreshResponse = await fetch(`${API_URL}/token/refresh/`, {
                         method: 'POST',
                         headers: {
@@ -505,14 +498,12 @@
                     
                     if (refreshResponse.ok) {
                         const data = await refreshResponse.json();
-                        // Guardar nuevo access token
                         localStorage.setItem('access_token', data.access);
                         console.log('✅ Token renovado exitosamente');
                         
-                        // Reintentar la petición original con el nuevo token
                         return apiRequest(endpoint, options, 1);
                     } else {
-                        // Refresh token inválido o expirado
+
                         console.log('❌ Refresh token inválido');
                         localStorage.removeItem('access_token');
                         localStorage.removeItem('refresh_token');
@@ -533,31 +524,24 @@
 
         // ===== FUNCIÓN PARA SELECCIONAR UNA COLECCIÓN =====
         function seleccionarColeccion(elemento) {
-            // 1. Remover clase 'active' de todas las colecciones
             document.querySelectorAll('.coleccion-item').forEach(item => {
                 item.classList.remove('active');
             });
             
-            // 2. Agregar clase 'active' a la colección clickeada
             elemento.classList.add('active');
             
-            // 3. Obtener el ID y nombre de la colección seleccionada
             const coleccionId = elemento.dataset.id;
             const coleccionNombre = elemento.textContent.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, "").trim();
             
-            // 4. Guardar el ID para usarlo después
             window.coleccionActivaId = coleccionId;
             
-            // 5. Actualizar el título en el header
             document.getElementById('coleccionTitulo').textContent = coleccionNombre;
             
-            // 6. MOSTRAR EL BOTÓN DE NUEVO BOOKMARK
+            // MOSTRAR EL BOTÓN DE NUEVO BOOKMARK
             document.getElementById('nuevoBookmarkBtn').style.display = 'block';
             
-            // 7. Mostrar en consola (para verificar)
             console.log(`✅ Colección seleccionada: ${coleccionNombre} (ID: ${coleccionId})`);
             
-            // 8. CARGAR LOS BOOKMARKS DE ESTA COLECCIÓN
             cargarBookmarks(coleccionId);
         }
 
@@ -565,23 +549,19 @@
         async function cargarBookmarks(coleccionId) {
             const bookmarksDiv = document.getElementById('listaBookmarks');
             
-            // Mostrar mensaje de carga
             bookmarksDiv.innerHTML = '<p class="error-message">Cargando bookmarks...</p>';
             
             try {
-                // Petición a la API con filtro por colección
                 const response = await apiRequest(`/bookmarks/?coleccion=${coleccionId}`);
                 if (!response) return;
                 
                 const bookmarks = await response.json();
                 
-                // Si no hay bookmarks
                 if (bookmarks.length === 0) {
                     bookmarksDiv.innerHTML = '<p class="error-message">No hay bookmarks en esta colección</p>';
                     return;
                 }
                 
-                // Construir HTML para cada bookmark
                 let html = '';
                 bookmarks.forEach(bookmark => {
                     html += `
@@ -639,7 +619,7 @@
                 
                 listaDiv.innerHTML = html;
                 
-                // Agregar event listeners para seleccionar (solo al hacer clic en el nombre)
+                // Agregar event listeners para seleccionar hacer clic en el nombre de la colección
                 document.querySelectorAll('.coleccion-item').forEach(item => {
                     const nombreSpan = item.querySelector('.coleccion-nombre');
                     nombreSpan.addEventListener('click', function() {
@@ -655,7 +635,6 @@
             }
         }
 
-        // ===== LOGOUT =====
         document.getElementById('logoutBtn').addEventListener('click', () => {
             localStorage.removeItem('access_token');
             localStorage.removeItem('refresh_token');
@@ -664,13 +643,11 @@
 
         console.log('✅ Dashboard cargado');
 
-        // ===== INICIAR CARGA DE COLECCIONES =====
-        // Solo cargar si hay access token (o si estamos en proceso de renovación, se recargará después)
         if (localStorage.getItem('access_token')) {
             cargarColecciones();
         }
 
-        // ===== VARIABLES PARA MODAL =====
+        // ===== VARIABLES PARA MODAL DE COLECCIÓN =====
         const modal = document.getElementById('coleccionModal');
         const btnNuevaColeccion = document.getElementById('nuevaColeccionBtn');
         const spanClose = document.querySelector('.close');
@@ -701,7 +678,6 @@
             }
         }
 
-        // ===== ENVÍO DEL FORMULARIO (CREAR/EDITAR) =====
         document.getElementById('coleccionForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -718,7 +694,6 @@
                 let response;
                 
                 if (id) {
-                    // EDITAR (PUT)
                     response = await apiRequest(`/colecciones/${id}/`, {
                         method: 'PUT',
                         body: JSON.stringify({
@@ -727,7 +702,6 @@
                         })
                     });
                 } else {
-                    // CREAR (POST)
                     response = await apiRequest('/colecciones/', {
                         method: 'POST',
                         body: JSON.stringify({
@@ -738,15 +712,12 @@
                 }
                 
                 if (response && response.ok) {
-                    // Cerrar modal
                     modal.style.display = 'none';
                     
-                    // Limpiar formulario
                     document.getElementById('coleccionForm').reset();
                     document.getElementById('coleccionId').value = '';
                     document.getElementById('modalTitulo').textContent = 'Nueva Colección';
                     
-                    // Recargar colecciones
                     await cargarColecciones();
                     
                     console.log(id ? '✅ Colección actualizada' : '✅ Colección creada');
@@ -763,7 +734,6 @@
 
         // ===== EDITAR COLECCIÓN =====
         async function editarColeccion(id, nombreActual, descripcionActual) {
-            // Abrir modal con los datos actuales
             modal.style.display = 'block';
             document.getElementById('modalTitulo').textContent = 'Editar Colección';
             document.getElementById('coleccionId').value = id;
@@ -816,7 +786,6 @@
                 return;
             }
             
-            // Limpiar formulario
             document.getElementById('bookmarkForm').reset();
             document.getElementById('bookmarkId').value = '';
             document.getElementById('bookmarkColeccionId').value = window.coleccionActivaId;
@@ -839,7 +808,6 @@
                 
                 const bookmark = await response.json();
                 
-                // Llenar el modal
                 document.getElementById('bookmarkId').value = bookmark.id;
                 document.getElementById('bookmarkColeccionId').value = bookmark.coleccion;
                 document.getElementById('bookmarkTitulo').value = bookmark.titulo;
@@ -906,13 +874,11 @@
                 };
                 
                 if (id) {
-                    // EDITAR
                     response = await apiRequest(`/bookmarks/${id}/`, {
                         method: 'PUT',
                         body: JSON.stringify(data)
                     });
                 } else {
-                    // CREAR
                     response = await apiRequest('/bookmarks/', {
                         method: 'POST',
                         body: JSON.stringify(data)
@@ -920,14 +886,11 @@
                 }
                 
                 if (response && response.ok) {
-                    // Cerrar modal
                     bookmarkModal.style.display = 'none';
                     
-                    // Limpiar formulario
                     document.getElementById('bookmarkForm').reset();
                     document.getElementById('bookmarkId').value = '';
                     
-                    // Recargar bookmarks
                     if (window.coleccionActivaId) {
                         await cargarBookmarks(window.coleccionActivaId);
                     }
